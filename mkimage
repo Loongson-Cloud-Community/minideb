@@ -48,8 +48,14 @@ fi
 
 rootfsDir=$(mktemp -d)
 echo "Building base in $rootfsDir"
-DEBOOTSTRAP_DIR="$DEBOOTSTRAP_DIR" debootstrap "${debootstrap_arch_args[@]}"  --keyring "$KEYRING" --variant container --foreign "${DIST}" "$rootfsDir"
-
+PLATFORM_OS=$(uname -i)
+if [ "$PLATFORM_OS" == "loongarch64" ];then
+    DIST="DaoXiangHu-stable"
+    cp $DEBOOTSTRAP_DIR/scripts/buster $DEBOOTSTRAP_DIR/scripts/${DIST}
+    DEBOOTSTRAP_DIR="$DEBOOTSTRAP_DIR" debootstrap "${debootstrap_arch_args[@]}"  --keyring "$KEYRING" --variant container --foreign "${DIST}" "$rootfsDir" "http://pkg.loongnix.cn/loongnix/"
+else
+    DEBOOTSTRAP_DIR="$DEBOOTSTRAP_DIR" debootstrap "${debootstrap_arch_args[@]}"  --keyring "$KEYRING" --variant container --foreign "${DIST}" "$rootfsDir"
+fi
 # get path to "chroot" in our current PATH
 chrootPath="$(type -P chroot)"
 rootfs_chroot() {
@@ -74,14 +80,18 @@ fi
 
 rootfs_chroot bash debootstrap/debootstrap --second-stage
 
-repo_url="http://deb.debian.org/debian"
-sec_repo_url="http://security.debian.org/"
+if [ "$PLATFORM_OS" == "loongarch64" ];then
+    repo_url="http://pkg.loongnix.cn/loongnix/"
+else
+    repo_url="http://deb.debian.org/debian"
+    sec_repo_url="http://security.debian.org/"
+fi
 
 echo -e "deb ${repo_url} $DIST main" > "$rootfsDir/etc/apt/sources.list"
 if [ "$DIST" == "bullseye" ]; then
     echo "deb ${repo_url} $DIST-updates main" >> "$rootfsDir/etc/apt/sources.list"
     echo "deb ${sec_repo_url} $DIST-security main" >> "$rootfsDir/etc/apt/sources.list"
-elif [ "$DIST" != "unstable" ]; then
+elif [ "$DIST" != "DaoXiangHu-stable" ]&&[ "$DIST" != "unstable" ]; then
     echo "deb ${sec_repo_url} $DIST/updates main" >> "$rootfsDir/etc/apt/sources.list"
 fi
 

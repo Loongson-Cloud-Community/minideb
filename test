@@ -47,6 +47,8 @@ if [[ "$PLATFORM" == "amd64" ]]; then
     test bash -c 'echo "$(uname -m)" && [[ "$(uname -m)" == *x86_64* ]]'
 elif [[ "$PLATFORM" == "arm64" ]]; then
     test bash -c 'echo "$(uname -m)" && [[ "$(uname -m)" == *arm* || "$(uname -m)" == *aarch64* ]]'
+elif [[ "$PLATFORM" == "loong64" ]]; then
+    test bash -c 'echo "$(uname -m)" && [[ "$(uname -m)" == *loongarch64* ]]'
 else
     echo Unknown platform $PLATFORM >&2
     exit 1
